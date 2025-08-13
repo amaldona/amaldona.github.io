@@ -1,0 +1,387 @@
+### **Veryfi Lens for Mobile — Cookbook for Cursor AI / Claude Code Integration**
+
+#### **Overview & Purpose**
+
+In this cookbook you will learn how to integrate the **Veryfi Lens for Mobile Android SDK** into Android apps—particularly via LLMs like Cursor AI or Claude Code.
+
+#### **Prerequisites**
+
+- API and Maven credentials (more info: https://docs.veryfi.com/lens/mobile/introduction/authentication/)
+- Kotlin or Java project with Gradle 8 and Java 17 minimum
+- Minimum Android SDK 6.0 (API Level 23)    
+    
+#### **1. Obtaining credentials**
+
+- You need two sets of credentials:
+
+  - Maven credentials to download the SDK (Maven username and password)
+  - Access credentials to access to the Veryfi API (Client ID, API key, username, URL)
+
+- If you don't have an account with Veryfi, please register here:  [https://app.veryfi.com/signup/api/](https://app.veryfi.com/signup/api/)
+
+- In the Veryfi hub, go to  `Settings`  >  `Keys`:
+  - In the `API Auth Credentials` section, you can get your API credentials.
+  - In the `Lens: Maven (Android)`  section you can create your Maven credentials.
+
+- Add your Maven credentials to your system environment (e.g.,  `~/.zshrc`). Replace  `[MAVEN_USERNAME]`  and  `[MAVEN_PASSWORD]`  with the credentials obtained in the previous step.
+
+  ```
+  export MAVEN_VERYFI_USERNAME=[USERNAME]
+  export MAVEN_VERYFI_PASSWORD=[PASSWORD]
+  ```
+
+- To check if the credentials are correct, run the next command in the terminal:
+
+```
+curl -sS --head https://$MAVEN_VERYFI_USERNAME:$MAVEN_VERYFI_PASSWORD@nexus.veryfi.com/repository/maven-public/com/veryfi/lens/veryfi-lens-sdk/2.1.0.25/veryfi-lens-sdk-2.1.0.25.pom | grep "HTTP/2"
+```
+
+  - If prints `HTTP/2 200`, then the credentials are valid
+  - but if it is `HTTP/2 401`, the credentials are not valid. Please double check the environment variables, or create new credentials in the Veryfi hub `Keys` page. To check the environment variables' values, run the next command to print them in the terminal:
+
+  ```
+  echo $MAVEN_VERYFI_USERNAME
+  echo $MAVEN_VERYFI_PASSWORD
+  ```
+
+
+#### **2. Installation**
+
+- To install the Veryfi Lens SDK for Android, you need to modify the next files:
+  - Add the Maven repository https://nexus.veryfi.com/repository/maven-releases/ to `settings.gradle` and use the environment variables `MAVEN_VERYFI_USERNAME` and `MAVEN_VERYFI_PASSWORD` for authentication.
+  - Add the `noCompress` property and the `implementation` dependency to `app/build.gradle`
+  - Modify the `<application>` tag attributes in `AndroidManifest.xml`
+
+- Register the private Maven repository in the project-level `settings.gradle` or `settings.gradle.kts`:
+
+  - `settings.gradle` (Groovy):
+  
+```
+dependencyResolutionManagement {
+    repositories {
+        ...
+        maven {
+            url "https://nexus.veryfi.com/repository/maven-releases/"
+            credentials {
+                username = System.getenv("MAVEN_VERYFI_USERNAME")
+                password = System.getenv("MAVEN_VERYFI_PASSWORD")
+            }
+            authentication {
+                basic(BasicAuthentication)
+            }
+        }
+    }
+}
+```
+
+  - `settings.gradle.kts` (Kotlin):
+  
+```
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        ...
+        maven {
+            url = uri("https://nexus.veryfi.com/repository/maven-releases/")
+            credentials {
+                username = System.getenv("MAVEN_VERYFI_USERNAME")
+                password = System.getenv("MAVEN_VERYFI_PASSWORD")
+            }
+            authentication {
+                create<BasicAuthentication>("basic")
+            }
+        }
+    }
+}
+```
+
+- In your `app/build.gradle` or `app/build.gradle.kts` file, add the `noCompress` property:
+
+
+  - `app/build.gradle` (Groovy):
+  
+```
+android {
+    ...
+    androidResources {
+        noCompress += 'veryfi'
+    }
+}
+```
+
+  - `app/build.gradle.kts` (Kotlin):
+
+```
+android {
+    ...
+    androidResources {
+        noCompress += "veryfi"
+    }
+}
+```
+
+- Add the dependencies. Replace VERYFI_SDK_VERSION with the latest version (Versions and release notes: https://github.com/veryfi/veryfi-lens-receipts-android-demo/releases):
+
+  - `app/build.gradle` (Groovy):
+
+```
+dependencies {
+    implementation "com.veryfi.lens:veryfi-lens-sdk:VERYFI_SDK_VERSION"
+    ...
+}
+```
+
+  - `app/build.gradle.kts` (Kotlin):
+
+```
+dependencies {
+    implementation("com.veryfi.lens:veryfi-lens-sdk:VERYFI_SDK_VERSION")
+    ...
+}
+```
+
+- If your `AndroidManifest.xml` has `android:allowBackup` or `android:usesCleartextTraffic` tags, add the namespace `tools` to the manifest, and include the following settings to the `<application>` tag:
+
+```
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+<application
+    ...
+    tools:ignore="AllowBackup,GoogleAppIndexingWarning"
+    tools:replace="android:allowBackup, android:usesCleartextTraffic">
+    ...
+</manifest>
+```
+
+- Finally, if you are using Android Studio, select `File` -> `Sync Project with Gradle Files` to download the depedencies and refresh the internal project model.
+
+
+#### **3. Initialization**
+
+-  Import required classes from Lens SDK:
+
+```
+import com.veryfi.lens.VeryfiLens
+import com.veryfi.lens.VeryfiLensDelegate
+import com.veryfi.lens.helpers.DocumentType
+import com.veryfi.lens.helpers.VeryfiLensCredentials
+import com.veryfi.lens.helpers.VeryfiLensSettings
+```
+
+- Configure your authentication credentials. Replace `CLIENT_ID`, `USERNAME`, `API_KEY` and `URL` with the `API Auth Credentials` from the step 1:
+
+```
+val veryfiLensCredentials = VeryfiLensCredentials()
+veryfiLensCredentials.clientId = "CLIENT_ID"  // replace XXX with your Client Id
+veryfiLensCredentials.username = "USERNAME"  // replace XXX with your username
+veryfiLensCredentials.apiKey = "API_KEY"    // replace XXX with your API Key
+veryfiLensCredentials.url = "URL"       // replace with your API environment URL
+```
+
+- Configure your Veryfi Lens settings (Settings documentation: https://docs.veryfi.com/lens/mobile/settings/)
+
+```
+val veryfiLensSettings = VeryfiLensSettings()
+veryfiLensSettings.autoRotateIsOn = true
+veryfiLensSettings.autoSubmitDocumentOnCapture = true
+veryfiLensSettings.documentTypes = arrayListOf(DocumentType.RECEIPT)
+veryfiLensSettings.galleryIsOn = false
+veryfiLensSettings.moreMenuIsOn = false
+```
+
+- Implement the `VeryfiLensDelegate` interface to handle the events triggered by Veryfi Lens:
+
+```
+class MyActivity: VeryfiLensDelegate {
+
+    override fun veryfiLensClose(json: JSONObject) {
+        // Process the JSON response here
+    }
+
+    override fun veryfiLensError(json: JSONObject) {
+        // Process the JSON response here
+    }
+
+    override fun veryfiLensSuccess(json: JSONObject) {
+        // Process the JSON response here
+    }
+
+    override fun veryfiLensUpdate(json: JSONObject) {
+        // Process the JSON response here
+    }
+
+}
+```
+
+- Register the delegate:
+
+```
+VeryfiLens.setDelegate(this)
+```
+
+- Initialize the SDK with the credentials, settings and the `Application` instance:
+
+```
+VeryfiLens.configure(application, credentials, settings) { }
+```
+
+#### **4. Starting the Lens (Camera) Flow**
+
+- Launch the Lens camera:
+
+```
+VeryfiLens.showCamera()
+```
+
+- Process the result in `VeryfiLensDelegate.veryfiLensSuccess(json)`. 
+
+#### **5. Full Example: MyActivity.kt**
+
+```
+import android.util.Log
+import com.veryfi.lens.VeryfiLens
+import com.veryfi.lens.VeryfiLensDelegate
+import com.veryfi.lens.helpers.DocumentType
+import com.veryfi.lens.helpers.VeryfiLensCredentials
+import com.veryfi.lens.helpers.VeryfiLensSettings
+
+class MyActivity : AppCompatActivity(), VeryfiLensDelegate {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        val veryfiLensCredentials = VeryfiLensCredentials()
+        veryfiLensCredentials.clientId = "CLIENT_ID"  // replace XXX with your Client Id
+        veryfiLensCredentials.username = "USERNAME"  // replace XXX with your username
+        veryfiLensCredentials.apiKey = "API_KEY"    // replace XXX with your API Key
+        veryfiLensCredentials.url = "URL"       // replace with your API environment URL
+
+        val veryfiLensSettings = VeryfiLensSettings()
+        veryfiLensSettings.autoCaptureIsOn = true
+        veryfiLensSettings.autoRotateIsOn = true
+        veryfiLensSettings.documentTypes = arrayListOf(DocumentType.RECEIPT)
+
+        VeryfiLens.setDelegate(this)
+
+        VeryfiLens.configure(application, credentials, settings) { }
+    }
+
+    override fun veryfiLensClose(json: JSONObject) {
+        Log.d("MyActivity", json.toString(2))
+    }
+
+    override fun veryfiLensError(json: JSONObject) {
+        Log.d("MyActivity", json.toString(2))
+    }
+
+    override fun veryfiLensSuccess(json: JSONObject) {
+        Log.d("MyActivity", json.toString(2))
+    }
+
+    override fun veryfiLensUpdate(json: JSONObject) {
+        Log.d("MyActivity", json.toString(2))
+    }
+
+    private fun onSomeButtonClicked() {
+        VeryfiLens.showCamera()
+    }
+}
+```
+
+---
+## **Veryfi Lens Android SDK — One-Shot Integration Prompt (For AI Tools)**
+
+```
+You are an expert Android SDK assistant.  
+Integrate the Veryfi Lens for Mobile Android SDK into a Kotlin Android project with Gradle 8+, Java 17+, and minSdk 23.  
+Follow these exact steps and output all required code/config changes.
+
+1. **Credentials**
+   - If no Veryfi account: https://app.veryfi.com/signup/api/
+   - Get API credentials from Veryfi hub: Settings → Keys → API Auth Credentials (Client ID, Username, API Key, URL).
+   - Get Maven credentials from Veryfi hub: Settings → Keys → Lens: Maven (Android) (Maven Username, Maven Password).
+   - Store in environment variables:
+     export MAVEN_VERYFI_USERNAME=[USERNAME]
+     export MAVEN_VERYFI_PASSWORD=[PASSWORD]
+   - Verify with:
+     curl -sS --head https://$MAVEN_VERYFI_USERNAME:$MAVEN_VERYFI_PASSWORD@nexus.veryfi.com/repository/maven-public/com/veryfi/lens/veryfi-lens-sdk/[VERSION]/veryfi-lens-sdk-[VERSION].pom | grep "HTTP/2"
+
+2. **Gradle Configuration**
+   - Add Maven repository to settings.gradle:
+     Groovy:
+     dependencyResolutionManagement {
+         repositories {
+             maven {
+                 url "https://nexus.veryfi.com/repository/maven-releases/"
+                 credentials {
+                     username = System.getenv("MAVEN_VERYFI_USERNAME")
+                     password = System.getenv("MAVEN_VERYFI_PASSWORD")
+                 }
+                 authentication {
+                     basic(BasicAuthentication)
+                 }
+             }
+         }
+     }
+   - Add to app/build.gradle:
+     android {
+         androidResources {
+             noCompress += 'veryfi'
+         }
+     }
+     dependencies {
+         implementation "com.veryfi.lens:veryfi-lens-sdk:VERYFI_SDK_VERSION"
+     }
+     (Replace VERYFI_SDK_VERSION with the latest from https://github.com/veryfi/veryfi-lens-receipts-android-demo/releases)
+
+3. **AndroidManifest Changes**
+   - If android:allowBackup or android:usesCleartextTraffic exist, add:
+     <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+               xmlns:tools="http://schemas.android.com/tools">
+         <application
+             tools:ignore="AllowBackup,GoogleAppIndexingWarning"
+             tools:replace="android:allowBackup, android:usesCleartextTraffic">
+         </application>
+     </manifest>
+
+4. **Kotlin Code**
+   - Import:
+     import com.veryfi.lens.VeryfiLens
+     import com.veryfi.lens.VeryfiLensDelegate
+     import com.veryfi.lens.helpers.DocumentType
+     import com.veryfi.lens.helpers.VeryfiLensCredentials
+     import com.veryfi.lens.helpers.VeryfiLensSettings
+   - Create credentials:
+     val credentials = VeryfiLensCredentials().apply {
+         clientId = "CLIENT_ID"
+         username = "USERNAME"
+         apiKey = "API_KEY"
+         url = "URL"
+     }
+   - Create settings:
+     val settings = VeryfiLensSettings().apply {
+         autoRotateIsOn = true
+         autoSubmitDocumentOnCapture = true
+         documentTypes = arrayListOf(DocumentType.RECEIPT)
+         galleryIsOn = false
+         moreMenuIsOn = false
+     }
+   - Implement VeryfiLensDelegate with:
+     veryfiLensClose, veryfiLensError, veryfiLensSuccess, veryfiLensUpdate
+   - Register delegate:
+     VeryfiLens.setDelegate(this)
+   - Configure SDK:
+     VeryfiLens.configure(application, credentials, settings) { }
+   - Launch camera:
+     VeryfiLens.showCamera()
+
+5. **Full Example**
+   - Output a complete MyActivity.kt that:
+     - Extends AppCompatActivity, implements VeryfiLensDelegate
+     - Sets credentials & settings in onCreate
+     - Implements delegate methods with logging
+     - Launches camera on button click
+
+6. **Final Step**
+   - In Android Studio: File → Sync Project with Gradle Files
+   - Build and run on an Android 6.0+ device.
+```
