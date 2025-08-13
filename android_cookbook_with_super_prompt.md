@@ -48,7 +48,7 @@ curl -sS --head https://$MAVEN_VERYFI_USERNAME:$MAVEN_VERYFI_PASSWORD@nexus.very
 #### **2. Installation**
 
 - To install the Veryfi Lens SDK for Android, you need to modify the next files:
-  - Add the Maven repository https://nexus.veryfi.com/repository/maven-releases/ to `settings.gradle` and use the environment variables `MAVEN_VERYFI_USERNAME` and `MAVEN_VERYFI_PASSWORD` for authentication.
+  - Add the Veryfi Maven repository at https://nexus.veryfi.com/repository/maven-releases/ to `settings.gradle` and use the environment variables `MAVEN_VERYFI_USERNAME` and `MAVEN_VERYFI_PASSWORD` for authentication.
   - Add the `noCompress` property and the `implementation` dependency to `app/build.gradle`
   - Modify the `<application>` tag attributes in `AndroidManifest.xml`
 
@@ -59,7 +59,6 @@ curl -sS --head https://$MAVEN_VERYFI_USERNAME:$MAVEN_VERYFI_PASSWORD@nexus.very
 ```
 dependencyResolutionManagement {
     repositories {
-        ...
         maven {
             url "https://nexus.veryfi.com/repository/maven-releases/"
             credentials {
@@ -80,7 +79,6 @@ dependencyResolutionManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        ...
         maven {
             url = uri("https://nexus.veryfi.com/repository/maven-releases/")
             credentials {
@@ -102,7 +100,6 @@ dependencyResolutionManagement {
   
 ```
 android {
-    ...
     androidResources {
         noCompress += 'veryfi'
     }
@@ -113,7 +110,6 @@ android {
 
 ```
 android {
-    ...
     androidResources {
         noCompress += "veryfi"
     }
@@ -127,7 +123,6 @@ android {
 ```
 dependencies {
     implementation "com.veryfi.lens:veryfi-lens-sdk:VERYFI_SDK_VERSION"
-    ...
 }
 ```
 
@@ -136,7 +131,6 @@ dependencies {
 ```
 dependencies {
     implementation("com.veryfi.lens:veryfi-lens-sdk:VERYFI_SDK_VERSION")
-    ...
 }
 ```
 
@@ -145,10 +139,8 @@ dependencies {
 ```
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
 <application
-    ...
     tools:ignore="AllowBackup,GoogleAppIndexingWarning"
     tools:replace="android:allowBackup, android:usesCleartextTraffic">
-    ...
 </manifest>
 ```
 
@@ -295,18 +287,8 @@ You are an expert Android SDK assistant.
 Integrate the Veryfi Lens for Mobile Android SDK into a Kotlin Android project with Gradle 8+, Java 17+, and minSdk 23.  
 Follow these exact steps and output all required code/config changes.
 
-1. **Credentials**
-   - If no Veryfi account: https://app.veryfi.com/signup/api/
-   - Get API credentials from Veryfi hub: Settings → Keys → API Auth Credentials (Client ID, Username, API Key, URL).
-   - Get Maven credentials from Veryfi hub: Settings → Keys → Lens: Maven (Android) (Maven Username, Maven Password).
-   - Store in environment variables:
-     export MAVEN_VERYFI_USERNAME=[USERNAME]
-     export MAVEN_VERYFI_PASSWORD=[PASSWORD]
-   - Verify with:
-     curl -sS --head https://$MAVEN_VERYFI_USERNAME:$MAVEN_VERYFI_PASSWORD@nexus.veryfi.com/repository/maven-public/com/veryfi/lens/veryfi-lens-sdk/[VERSION]/veryfi-lens-sdk-[VERSION].pom | grep "HTTP/2"
-
-2. **Gradle Configuration**
-   - Add Maven repository to settings.gradle:
+1. **Gradle Configuration**
+   - Add the Veryfi Maven repository to settings.gradle:
      Groovy:
      dependencyResolutionManagement {
          repositories {
@@ -325,15 +307,15 @@ Follow these exact steps and output all required code/config changes.
    - Add to app/build.gradle:
      android {
          androidResources {
-             noCompress += 'veryfi'
+             noCompress += "veryfi"
          }
      }
      dependencies {
-         implementation "com.veryfi.lens:veryfi-lens-sdk:VERYFI_SDK_VERSION"
+         implementation("com.veryfi.lens:veryfi-lens-sdk:VERYFI_SDK_VERSION")
      }
      (Replace VERYFI_SDK_VERSION with the latest from https://github.com/veryfi/veryfi-lens-receipts-android-demo/releases)
 
-3. **AndroidManifest Changes**
+2. **AndroidManifest Changes**
    - If android:allowBackup or android:usesCleartextTraffic exist, add:
      <manifest xmlns:android="http://schemas.android.com/apk/res/android"
                xmlns:tools="http://schemas.android.com/tools">
@@ -343,7 +325,7 @@ Follow these exact steps and output all required code/config changes.
          </application>
      </manifest>
 
-4. **Kotlin Code**
+3. **Kotlin Code**
    - Import:
      import com.veryfi.lens.VeryfiLens
      import com.veryfi.lens.VeryfiLensDelegate
@@ -374,14 +356,4 @@ Follow these exact steps and output all required code/config changes.
    - Launch camera:
      VeryfiLens.showCamera()
 
-5. **Full Example**
-   - Output a complete MyActivity.kt that:
-     - Extends AppCompatActivity, implements VeryfiLensDelegate
-     - Sets credentials & settings in onCreate
-     - Implements delegate methods with logging
-     - Launches camera on button click
-
-6. **Final Step**
-   - In Android Studio: File → Sync Project with Gradle Files
-   - Build and run on an Android 6.0+ device.
 ```
