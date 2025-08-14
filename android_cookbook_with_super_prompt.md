@@ -329,8 +329,7 @@ Follow these exact steps and output all required code/config changes.
      dependencies {
          implementation("com.veryfi.lens:veryfi-lens-sdk:VERYFI_SDK_VERSION")
      }
-     (Replace VERYFI_SDK_VERSION with the latest from https://github.com/veryfi/veryfi-lens-receipts-android-demo/releases)
-
+   - Get the latest SDK version number from https://github.com/veryfi/veryfi-lens-receipts-android-demo/releases and replace VERYFI_SDK_VERSION in the Gradle dependency with that exact number.
 2. **AndroidManifest Changes**
    - If android:allowBackup or android:usesCleartextTraffic exist, add:
      <manifest xmlns:android="http://schemas.android.com/apk/res/android"
