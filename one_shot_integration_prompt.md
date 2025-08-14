@@ -35,7 +35,8 @@ Follow these exact steps and output all required code/config changes.
              }
          }
      }
-   - Add to app/build.gradle:
+   - Get the latest version number from https://github.com/veryfi/veryfi-lens-receipts-android-demo/releases/latest.
+   - Add to app/build.gradle and replace VERYFI_SDK_VERSION with the latest version number from the previous step:
      android {
          androidResources {
              noCompress += "veryfi"
@@ -44,7 +45,6 @@ Follow these exact steps and output all required code/config changes.
      dependencies {
          implementation("com.veryfi.lens:veryfi-lens-sdk:VERYFI_SDK_VERSION")
      }
-   - Get the latest SDK version number from https://github.com/veryfi/veryfi-lens-receipts-android-demo/releases and replace VERYFI_SDK_VERSION in the Gradle dependency with that exact number.
 2. **AndroidManifest Changes**
    - If android:allowBackup exist, add:
      <manifest xmlns:android="http://schemas.android.com/apk/res/android"
