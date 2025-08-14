@@ -134,13 +134,13 @@ dependencies {
 }
 ```
 
-- If your `AndroidManifest.xml` has `android:allowBackup` or `android:usesCleartextTraffic` tags, add the namespace `tools` to the manifest, and include the following settings to the `<application>` tag:
+- If your `AndroidManifest.xml` has `android:allowBackup` tag, add the namespace `tools` to the manifest, and include the following settings to the `<application>` tag:
 
 ```
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
 <application
     tools:ignore="AllowBackup,GoogleAppIndexingWarning"
-    tools:replace="android:allowBackup, android:usesCleartextTraffic">
+    tools:replace="android:allowBackup">
 </manifest>
 ```
 
@@ -331,12 +331,12 @@ Follow these exact steps and output all required code/config changes.
      }
    - Get the latest SDK version number from https://github.com/veryfi/veryfi-lens-receipts-android-demo/releases and replace VERYFI_SDK_VERSION in the Gradle dependency with that exact number.
 2. **AndroidManifest Changes**
-   - If android:allowBackup or android:usesCleartextTraffic exist, add:
+   - If android:allowBackup exist, add:
      <manifest xmlns:android="http://schemas.android.com/apk/res/android"
                xmlns:tools="http://schemas.android.com/tools">
          <application
              tools:ignore="AllowBackup,GoogleAppIndexingWarning"
-             tools:replace="android:allowBackup, android:usesCleartextTraffic">
+             tools:replace="android:allowBackup">
          </application>
      </manifest>
 
@@ -363,7 +363,7 @@ Follow these exact steps and output all required code/config changes.
          moreMenuIsOn = false
      }
    - Implement VeryfiLensDelegate with:
-     veryfiLensClose, veryfiLensError, veryfiLensSuccess, veryfiLensUpdate
+     veryfiLensClose(json: JSONObject), veryfiLensError(json: JSONObject), veryfiLensSuccess(json: JSONObject), veryfiLensUpdate(json: JSONObject)
    - Register delegate:
      VeryfiLens.setDelegate(this)
    - Configure SDK:
