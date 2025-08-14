@@ -288,8 +288,8 @@ Integrate the Veryfi Lens for Mobile Android SDK into a Kotlin Android project w
 Follow these exact steps and output all required code/config changes.
 
 1. **Gradle Configuration**
-   - Add the Veryfi Maven repository to settings.gradle:
-     Groovy:
+   - Update settings.gradle to add the Veryfi Maven repository with authentication.
+     Example (Groovy):
      dependencyResolutionManagement {
          repositories {
              maven {
@@ -300,6 +300,22 @@ Follow these exact steps and output all required code/config changes.
                  }
                  authentication {
                      basic(BasicAuthentication)
+                 }
+             }
+         }
+     }
+     Example (Kotlin):
+     dependencyResolutionManagement {
+         repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+         repositories {
+             maven {
+                 url = uri("https://nexus.veryfi.com/repository/maven-releases/")
+                 credentials {
+                     username = System.getenv("MAVEN_VERYFI_USERNAME")
+                     password = System.getenv("MAVEN_VERYFI_PASSWORD")
+                 }
+                 authentication {
+                     create<BasicAuthentication>("basic")
                  }
              }
          }
