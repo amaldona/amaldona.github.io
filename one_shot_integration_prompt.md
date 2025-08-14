@@ -35,7 +35,7 @@ Follow these exact steps and output all required code/config changes.
              }
          }
      }
-   - Get the latest version number from https://github.com/veryfi/veryfi-lens-receipts-android-demo/releases/latest.
+   - Get the latest SDK version number (without the “v” prefix) from https://github.com/veryfi/veryfi-lens-receipts-android-demo/releases/latest.
    - Add to app/build.gradle and replace VERYFI_SDK_VERSION with the latest version number from the previous step:
      android {
          androidResources {
