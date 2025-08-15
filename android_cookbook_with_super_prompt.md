@@ -197,13 +197,13 @@ class MyActivity : VeryfiLensDelegate {
 
 - Register the delegate:
 
-```
+```kotlin
 VeryfiLens.setDelegate(this)
 ```
 
 - Initialize the SDK with the credentials, settings and the `Application` instance:
 
-```
+```kotlin
 VeryfiLens.configure(application, credentials, settings) { }
 ```
 
@@ -211,7 +211,7 @@ VeryfiLens.configure(application, credentials, settings) { }
 
 - Launch the Lens camera:
 
-```
+```kotlin
 VeryfiLens.showCamera()
 ```
 
