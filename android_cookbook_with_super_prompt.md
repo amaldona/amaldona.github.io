@@ -136,11 +136,13 @@ dependencies {
 
 - If your `AndroidManifest.xml` has `android:allowBackup` tag, add the namespace `tools` to the manifest, and include the following settings to the `<application>` tag:
 
-```
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
-<application
-    tools:ignore="AllowBackup,GoogleAppIndexingWarning"
-    tools:replace="android:allowBackup">
+```xml
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools">
+    <application
+        tools:ignore="AllowBackup,GoogleAppIndexingWarning"
+        tools:replace="android:allowBackup">
+    </application>
 </manifest>
 ```
 
@@ -151,7 +153,7 @@ dependencies {
 
 -  Import required classes from Lens SDK:
 
-```
+```kotlin
 import com.veryfi.lens.VeryfiLens
 import com.veryfi.lens.VeryfiLensDelegate
 import com.veryfi.lens.helpers.DocumentType
@@ -161,46 +163,35 @@ import com.veryfi.lens.helpers.VeryfiLensSettings
 
 - Configure your authentication credentials. Replace `CLIENT_ID`, `USERNAME`, `API_KEY` and `URL` with the `API Auth Credentials` from the step 1:
 
-```
-val veryfiLensCredentials = VeryfiLensCredentials()
-veryfiLensCredentials.clientId = "CLIENT_ID"  // replace XXX with your Client Id
-veryfiLensCredentials.username = "USERNAME"  // replace XXX with your username
-veryfiLensCredentials.apiKey = "API_KEY"    // replace XXX with your API Key
-veryfiLensCredentials.url = "URL"       // replace with your API environment URL
+```kotlin
+val credentials = VeryfiLensCredentials().apply {
+    clientId = "CLIENT_ID"
+    username = "USERNAME"
+    apiKey = "API_KEY"
+    url = "URL"
+}
 ```
 
 - Configure your Veryfi Lens settings (Settings documentation: https://docs.veryfi.com/lens/mobile/settings/)
 
-```
-val veryfiLensSettings = VeryfiLensSettings()
-veryfiLensSettings.autoRotateIsOn = true
-veryfiLensSettings.autoSubmitDocumentOnCapture = true
-veryfiLensSettings.documentTypes = arrayListOf(DocumentType.RECEIPT)
-veryfiLensSettings.galleryIsOn = false
-veryfiLensSettings.moreMenuIsOn = false
+```kotlin
+val settings = VeryfiLensSettings().apply {
+    autoRotateIsOn = true
+    autoSubmitDocumentOnCapture = true
+    documentTypes = arrayListOf(DocumentType.RECEIPT)
+    galleryIsOn = false
+    moreMenuIsOn = false
+}
 ```
 
 - Implement the `VeryfiLensDelegate` interface to handle the events triggered by Veryfi Lens:
 
-```
-class MyActivity: VeryfiLensDelegate {
-
-    override fun veryfiLensClose(json: JSONObject) {
-        // Process the JSON response here
-    }
-
-    override fun veryfiLensError(json: JSONObject) {
-        // Process the JSON response here
-    }
-
-    override fun veryfiLensSuccess(json: JSONObject) {
-        // Process the JSON response here
-    }
-
-    override fun veryfiLensUpdate(json: JSONObject) {
-        // Process the JSON response here
-    }
-
+```kotlin
+class MyActivity : VeryfiLensDelegate {
+    override fun veryfiLensClose(json: JSONObject) { /* handle */ }
+    override fun veryfiLensError(json: JSONObject) { /* handle */ }
+    override fun veryfiLensSuccess(json: JSONObject) { /* handle */ }
+    override fun veryfiLensUpdate(json: JSONObject) { /* handle */ }
 }
 ```
 
@@ -228,50 +219,33 @@ VeryfiLens.showCamera()
 
 #### **5. Full Example: MyActivity.kt**
 
-```
-import android.util.Log
-import com.veryfi.lens.VeryfiLens
-import com.veryfi.lens.VeryfiLensDelegate
-import com.veryfi.lens.helpers.DocumentType
-import com.veryfi.lens.helpers.VeryfiLensCredentials
-import com.veryfi.lens.helpers.VeryfiLensSettings
-
+```kotlin
 class MyActivity : AppCompatActivity(), VeryfiLensDelegate {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val veryfiLensCredentials = VeryfiLensCredentials()
-        veryfiLensCredentials.clientId = "CLIENT_ID"  // replace XXX with your Client Id
-        veryfiLensCredentials.username = "USERNAME"  // replace XXX with your username
-        veryfiLensCredentials.apiKey = "API_KEY"    // replace XXX with your API Key
-        veryfiLensCredentials.url = "URL"       // replace with your API environment URL
+        val credentials = VeryfiLensCredentials().apply {
+            clientId = "CLIENT_ID"
+            username = "USERNAME"
+            apiKey = "API_KEY"
+            url = "URL"
+        }
 
-        val veryfiLensSettings = VeryfiLensSettings()
-        veryfiLensSettings.autoCaptureIsOn = true
-        veryfiLensSettings.autoRotateIsOn = true
-        veryfiLensSettings.documentTypes = arrayListOf(DocumentType.RECEIPT)
+        val settings = VeryfiLensSettings().apply {
+            autoCaptureIsOn = true
+            autoRotateIsOn = true
+            documentTypes = arrayListOf(DocumentType.RECEIPT)
+        }
 
         VeryfiLens.setDelegate(this)
-
         VeryfiLens.configure(application, credentials, settings) { }
     }
 
-    override fun veryfiLensClose(json: JSONObject) {
-        Log.d("MyActivity", json.toString(2))
-    }
-
-    override fun veryfiLensError(json: JSONObject) {
-        Log.d("MyActivity", json.toString(2))
-    }
-
-    override fun veryfiLensSuccess(json: JSONObject) {
-        Log.d("MyActivity", json.toString(2))
-    }
-
-    override fun veryfiLensUpdate(json: JSONObject) {
-        Log.d("MyActivity", json.toString(2))
-    }
+    override fun veryfiLensClose(json: JSONObject) { Log.d("Lens", json.toString(2)) }
+    override fun veryfiLensError(json: JSONObject) { Log.d("Lens", json.toString(2)) }
+    override fun veryfiLensSuccess(json: JSONObject) { Log.d("Lens", json.toString(2)) }
+    override fun veryfiLensUpdate(json: JSONObject) { Log.d("Lens", json.toString(2)) }
 
     private fun onSomeButtonClicked() {
         VeryfiLens.showCamera()
